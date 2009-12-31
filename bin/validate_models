@@ -1,0 +1,56 @@
+#!/usr/bin/env ruby
+
+require File.expand_path(File.dirname(__FILE__) + "/../config/environment")
+require 'colored'
+
+module ValidateModels
+  extend self
+
+  def validate
+    models.each do |model|
+      ids = []
+
+      begin
+        model.find(:all, :select => "id").each do |model_id|
+          obj = model.find(model_id)
+
+          unless obj.valid?
+            ids << model_id
+            puts "* #{obj.class}:#{obj.id} is invalid - errors: #{errors_for(obj)}"
+          end
+        end
+
+        puts ""
+        puts "** Totals: #{model}, #{ids.size} invalid records"
+        puts ""
+        puts ""
+      rescue => e
+        puts "** Error: #{e}".red
+      end
+    end
+  end
+
+  def models
+    returning Array.new do |models|
+      files = Dir.glob(RAILS_ROOT + "/app/models/**/*.rb")
+
+      files.each do |file|
+        if File.read(file) =~ /class\s.+\s<.*ActiveRecord::Base/
+          klass_name = file.gsub("#{RAILS_ROOT}/app/models/", "").gsub(".rb", "")
+          klass_name = klass_name.camelize
+
+          puts "* Found model: #{klass_name}"
+          models << klass_name.constantize
+        end
+      end
+
+      puts ""
+    end
+  end
+
+  def errors_for(obj)
+    obj.errors.to_a.map { |x| "#{x[0]} - #{x[1]}" }.join(", ")
+  end
+end
+
+ValidateModels.validate

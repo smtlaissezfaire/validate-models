@@ -2,5 +2,6 @@
 
 Validate your rails data:
 
-./script/plugin install git://github.com/smtlaissezfaire/validate-models.git
-./script/validate_models
+  ./script/plugin install git://github.com/smtlaissezfaire/validate-models.git
+
+  ./script/validate_models
